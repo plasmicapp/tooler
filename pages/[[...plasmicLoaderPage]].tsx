@@ -7,19 +7,23 @@ import {
 } from "@plasmicapp/loader-react";
 import Error from "next/error";
 import { PLASMIC } from "../init";
+import { Head } from "next/document";
 
 export default function PlasmicLoaderPage(props: {
-  plasmicData?: ComponentRenderData
+  plasmicData?: ComponentRenderData;
 }) {
   const { plasmicData } = props;
   if (!plasmicData || plasmicData.entryCompMetas.length === 0) {
     return <Error statusCode={404} />;
   }
   return (
-    <PlasmicRootProvider
-      loader={PLASMIC}
-      prefetchedData={plasmicData}
-    >
+    <PlasmicRootProvider loader={PLASMIC} prefetchedData={plasmicData}>
+      <Head>
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap"
+        />
+      </Head>
       <PlasmicComponent component={plasmicData.entryCompMetas[0].name} />
     </PlasmicRootProvider>
   );
@@ -27,7 +31,12 @@ export default function PlasmicLoaderPage(props: {
 
 export const getStaticProps: GetStaticProps = async (context) => {
   const { plasmicLoaderPage } = context.params ?? {};
-  const plasmicPath = typeof plasmicLoaderPage === 'string' ? plasmicLoaderPage : Array.isArray(plasmicLoaderPage) ? `/${plasmicLoaderPage.join('/')}` : '/';
+  const plasmicPath =
+    typeof plasmicLoaderPage === "string"
+      ? plasmicLoaderPage
+      : Array.isArray(plasmicLoaderPage)
+      ? `/${plasmicLoaderPage.join("/")}`
+      : "/";
   const plasmicData = await PLASMIC.maybeFetchComponentData(plasmicPath);
   if (plasmicData) {
     return {
@@ -38,7 +47,7 @@ export const getStaticProps: GetStaticProps = async (context) => {
     // non-Plasmic catch-all
     props: {},
   };
-}
+};
 
 export const getStaticPaths: GetStaticPaths = async () => {
   const pageModules = await PLASMIC.fetchPages();
@@ -50,4 +59,4 @@ export const getStaticPaths: GetStaticPaths = async () => {
     })),
     fallback: false,
   };
-}
+};
