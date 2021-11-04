@@ -40,8 +40,15 @@ export default function Host() {
             name={"userProjects"}
             urlExpr={`"http://localhost:3000/api/fetch?path=/api/v1/admin/projects"`}
             method={"POST"}
+            runWhen={"always"}
             disableExpr={`!selectedUser?.value`}
             bodyExpr={`{ownerId: users?.value?.users.find(u => u.email === selectedUser?.value)?.id}`}
+          />
+          <RestQuery
+            name={"cloneProject"}
+            urlExpr={`"http://localhost:3000/api/fetch?path=/api/v1/admin/clone"`}
+            method={"POST"}
+            bodyExpr={`{projectId: projectIdToClone?.value}`}
           />
           {/*<TInput*/}
           {/*  name={"userSearch"}*/}
@@ -52,23 +59,24 @@ export default function Host() {
           {/*  name={"usersTable"}*/}
           {/*  dataExpr={`users?.value?.users.filter(row => JSON.stringify(row).includes(userSearch?.value))`}*/}
           {/*/>*/}
-          <TSelect
-            name={"selectedUser"}
-            labelExpr={`"Select a user"`}
-            optionsExpr={`users?.value?.users.map(u => u.email)`}
-          />
-          <TTable
-            name={"projectsTable"}
-            dataExpr={`userProjects?.value?.projects`}
-          />
+          {/*<TSelect*/}
+          {/*  name={"selectedUser"}*/}
+          {/*  labelExpr={`"Select a user"`}*/}
+          {/*  optionsExpr={`users?.value?.users.map(u => u.email)`}*/}
+          {/*/>*/}
+          {/*<TTable*/}
+          {/*  name={"projectsTable"}*/}
+          {/*  dataExpr={`userProjects?.value?.projects`}*/}
+          {/*/>*/}
           <TInput
-            name={"devflags"}
-            labelExpr={`"My text"`}
+            name={"projectIdToClone"}
+            labelExpr={`"Project ID to clone"`}
             placeholderExpr={`"Enter something here"`}
-            multiline
           />
+          <TButton onClickAction={`[{"query": "cloneProject"}]`}>
+            Clone project
+          </TButton>
           <TText textExpr={"foo"} />
-          <TButton onClickAction={"[{execQuery: ''}]"}>Hello</TButton>
         </div>
       </div>
     </TProvider>

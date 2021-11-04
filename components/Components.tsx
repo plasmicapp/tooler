@@ -26,6 +26,7 @@ import {
 import { Box } from "@mui/system";
 import { visuallyHidden } from "@mui/utils";
 import { PlasmicCanvasContext } from "@plasmicapp/host";
+import { useForceUpdate } from "@plasmicapp/loader-react/dist/utils";
 
 type HttpMethod = "GET" | "POST";
 
@@ -75,7 +76,6 @@ function compileCodeExpr(src: string) {
         }
       },
     });
-    console.log({ code, thisObj, sandboxProxy });
     const res = code.bind(thisObj ?? {})(sandboxProxy);
     return res;
   };
@@ -106,11 +106,12 @@ class Store {
       ? this.evalExpr(expr) ?? defaultValue
       : defaultValue;
   }
-  execAction(action: Action) {
-    if (action === "alert") {
-      alert();
+  async execAction(action: Action) {
+    const steps = JSON.parse(action);
+    for (const { query } of steps) {
+      await this.registeredQueries[query]();
+      this.forceUpdate();
     }
-    this.forceUpdate();
   }
   makeEventHandler(action?: Action) {
     return action ? (...args: any[]) => this.execAction(action) : undefined;
@@ -175,6 +176,13 @@ class Store {
         error,
       });
     }
+  }
+  private registeredQueries: Record<string, () => Promise<void>> = {};
+  registerQuery(name: string, run: () => Promise<void>) {
+    this.registeredQueries[name] = run;
+  }
+  async execNamedQuery(name: string) {
+    return this.registeredQueries[name]();
   }
 }
 
@@ -301,7 +309,6 @@ export function TSelect({
   const options = store.evalExprWithDefault<string[]>(optionsExpr, []);
   const label = store.evalExprWithDefault(labelExpr, "");
   const defaultValue = store.evalExprWithDefault(defaultValueExpr, "");
-  console.log({ defaultValue, label, options });
   return (
     <Autocomplete
       disablePortal
@@ -495,6 +502,8 @@ function QueryDisplay({ className, children }: QueryDisplayProps) {
   ) : null;
 }
 
+type RunWhen = "triggered" | "always";
+
 export interface RestQueryProps {
   className?: string;
   name?: string;
@@ -502,6 +511,7 @@ export interface RestQueryProps {
   method?: HttpMethod;
   bodyExpr?: Expr;
   disableExpr?: Expr;
+  runWhen?: RunWhen;
 }
 
 export function RestQuery({
@@ -511,16 +521,31 @@ export function RestQuery({
   bodyExpr,
   disableExpr,
   method = "GET",
+  runWhen = method === "GET" ? "always" : "triggered",
 }: RestQueryProps) {
   const store = useStore();
   const url = store.evalExprWithDefault(urlExpr, "");
   const body = store.evalExprWithDefault(bodyExpr, {});
   const disable = store.evalExprWithDefault(disableExpr, false);
   useEffect(() => {
+    console.log("BLAH", name);
+  }, [name, url, method, JSON.stringify(body), runWhen]);
+  async function run() {
     if (name && url && !disable) {
-      store.execRestQuery({ name, url, method, body });
+      await store.execRestQuery({ name, url, method, body });
     }
-  }, [name, url, method, JSON.stringify(body)]);
+  }
+  useEffect(() => {
+    console.log("EFFECT", name);
+    if (name && url && !disable) {
+      if (runWhen === "always") {
+        run();
+      } else {
+        store.registerQuery(name, run);
+        console.log("REGISTERING", name, (store as any).registeredQueries);
+      }
+    }
+  }, [name, url, method, JSON.stringify(body), runWhen]);
   return (
     <QueryDisplay className={className}>
       REST API query: {url}
