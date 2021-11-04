@@ -6,7 +6,7 @@ import {
   PlasmicRootProvider,
 } from "@plasmicapp/loader-react";
 import Error from "next/error";
-import { PLASMIC } from "../init";
+import { PLASMIC } from "../plasmic-init";
 import { Head } from "next/document";
 
 export default function PlasmicLoaderPage(props: {
