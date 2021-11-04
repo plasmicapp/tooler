@@ -16,7 +16,7 @@ import {
 
 export default function Host() {
   return (
-    <TProvider debug defaultEnv={{ x: 42 }}>
+    <TProvider debug defaultEnv={{}}>
       <div>
         <Head>
           <script

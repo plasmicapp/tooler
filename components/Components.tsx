@@ -1,3 +1,4 @@
+import Inspector from "react-inspector";
 import React, {
   createContext,
   ReactNode,
@@ -186,9 +187,9 @@ class Store {
   }
 }
 
-export const StoreContext = createContext<Store | undefined>(undefined);
+export const StoreContext = createContext<[Store] | undefined>(undefined);
 
-export const useStore = () => ensure(useContext(StoreContext));
+export const useStore = () => ensure(useContext(StoreContext))[0];
 
 export interface TProviderProps {
   children?: ReactNode;
@@ -202,11 +203,15 @@ export function TProvider({
   debug = false,
 }: TProviderProps) {
   const [, setCount] = useState(0);
-  const store = new Store(debug, defaultEnv, () =>
-    setCount((count) => count + 1)
+  // const store = new Store(debug, defaultEnv, () =>
+  //   setCount((count) => count + 1)
+  // );
+
+  const [store] = useState(
+    new Store(debug, defaultEnv, () => setCount((count) => count + 1))
   );
   return (
-    <StoreContext.Provider value={store}>{children}</StoreContext.Provider>
+    <StoreContext.Provider value={[store]}>{children}</StoreContext.Provider>
   );
 }
 
@@ -482,9 +487,17 @@ export function TTable({
   );
 }
 
-export function TDebug() {
+export function TDebug({ className }: { className?: string }) {
   const store = useStore();
-  return <pre>{store.dumpDebug()}</pre>;
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => {
+    setLoaded(true);
+  });
+  return (
+    <div className={className}>
+      {loaded && <Inspector data={store.getEnv()} expandLevel={2} />}
+    </div>
+  );
 }
 
 interface QueryDisplayProps {
