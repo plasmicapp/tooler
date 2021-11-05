@@ -27,7 +27,6 @@ import {
 import { Box } from "@mui/system";
 import { visuallyHidden } from "@mui/utils";
 import { PlasmicCanvasContext } from "@plasmicapp/host";
-import { useForceUpdate } from "@plasmicapp/loader-react/dist/utils";
 
 type HttpMethod = "GET" | "POST";
 
@@ -218,16 +217,13 @@ export function TProvider({
 export interface TButtonProps {
   children?: ReactNode;
   className?: string;
-  onClickAction?: Action;
+  clickAction?: Action;
 }
 
-export function TButton({ children, className, onClickAction }: TButtonProps) {
+export function TButton({ children, className, clickAction }: TButtonProps) {
   const store = useStore();
   return (
-    <Button
-      className={className}
-      onClick={store.makeEventHandler(onClickAction)}
-    >
+    <Button className={className} onClick={store.makeEventHandler(clickAction)}>
       <div>{children}</div>
     </Button>
   );
@@ -252,7 +248,7 @@ export interface TInputProps {
   placeholderExpr?: Expr;
   labelExpr?: Expr;
   multiline?: boolean;
-  rowsExpr?: Expr;
+  rows?: number;
 }
 
 export function TInput({
@@ -262,7 +258,7 @@ export function TInput({
   placeholderExpr,
   labelExpr,
   multiline = false,
-  rowsExpr,
+  rows = 3,
 }: TInputProps) {
   const store = useStore();
   const defaultValue = store.evalExprWithDefault(defaultValueExpr, "");
@@ -273,7 +269,6 @@ export function TInput({
   const placeholder = store.evalExprWithDefault(placeholderExpr, "");
   const debounced = _.debounce((f: () => void) => f(), 200);
   const label = store.evalExprWithDefault(labelExpr, "");
-  const rows = store.evalExprWithDefault(rowsExpr, 3);
   return (
     <TextField
       className={className}
