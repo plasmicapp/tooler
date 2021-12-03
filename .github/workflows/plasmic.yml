@@ -72,6 +72,13 @@ jobs:
         with:
           branch: gh-pages
           folder: ${{ steps.build.outputs.publish_dir }}
+      - id: archive-publish-artifacts
+        name: Archive production artifacts
+        uses: actions/upload-artifact@v2
+        if: ${{ steps.build.outputs.publish_dir }}
+        with:
+          name: plasmic-publish-archive
+          path: ${{ steps.build.outputs.publish_dir }}
       - id: pr
         name: Creating pull request...
         uses: repo-sync/pull-request@v2

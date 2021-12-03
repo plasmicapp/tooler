@@ -21,7 +21,7 @@ jobs:
         name: Set up node v14
         uses: actions/setup-node@v2
         with:
-          node-version: "14"
+          node-version: '14'
       - id: cache
         name: Recover cache
         uses: actions/cache@v2
@@ -42,3 +42,10 @@ jobs:
         with:
           branch: gh-pages
           folder: ${{ steps.build.outputs.publish_dir }}
+      - id: archive-publish-artifacts
+        name: Archive production artifacts
+        uses: actions/upload-artifact@v2
+        if: ${{ steps.build.outputs.publish_dir }}
+        with:
+          name: plasmic-publish-archive
+          path: ${{ steps.build.outputs.publish_dir }}
